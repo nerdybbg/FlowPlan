@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#182338" />
+      <stop offset="70%" stop-color="#0B0F19" />
+      <stop offset="100%" stop-color="#05070D" />
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2BA" />
+      <stop offset="50%" stop-color="#567C8D" />
+      <stop offset="100%" stop-color="#8A4E2A" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bgGlow)" />
+  <circle cx="256" cy="256" r="220" stroke="#1E293B" stroke-width="2" fill="none" />
+  <!-- Circadian Track -->
+  <circle cx="256" cy="256" r="170" stroke="url(#ringGrad)" stroke-width="14" stroke-dasharray="800 280" stroke-linecap="round" fill="none" filter="url(#glow)" />
+  <!-- Hour Markers -->
+  <circle cx="256" cy="86" r="8" fill="#FFF2BA" filter="url(#glow)" />
+  <circle cx="426" cy="256" r="6" fill="#567C8D" />
+  <circle cx="256" cy="426" r="6" fill="#8A4E2A" />
+  <circle cx="86" cy="256" r="6" fill="#5B0D18" />
+  <!-- Inner Monogram "FP" -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="140" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">
+    <text x="256" y="250" letter-spacing="-6">
+      <tspan fill="#FFFFFF">F</tspan><tspan fill="#FFF2BA">P</tspan>
+    </text>
+  </g>
+  <text x="256" y="340" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="24" fill="#567C8D" text-anchor="middle" letter-spacing="6">FLOWPLAN</text>
+</svg>

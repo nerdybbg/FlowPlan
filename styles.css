@@ -1,0 +1,781 @@
+/* ==========================================================================
+   FlowPlan OS — Hardware-Accelerated 60fps Obsidian Stylesheet
+   Engineered for Zero Compositing Lag + Portfolio-Grade Interactive RAG AI UI
+   ========================================================================== */
+
+:root {
+  --bg-obsidian: #0B0F19;
+  --bg-surface: #0F1626;
+  --bg-elevated: #151F34;
+  --blue-coral: #0F3C65;
+  --teal-accent: #567C8D;
+  --sky-blue: #C8D9E6;
+  --white-sand: #E7E3DD;
+  --buttermilk: #FFF2BA;
+  --rouge-noir: #5B0D18;
+  --emerald-glow: #10B981;
+  --amber-glow: #F59E0B;
+  --crimson-glow: #EF4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-obsidian);
+  color: var(--white-sand);
+  overflow-x: hidden;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fixed 3D WebGL Canvas */
+#three-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* GPU-Friendly Obsidian Surfaces (Zero multi-layer backdrop-filter lag during scroll) */
+.glass-pill {
+  background: rgba(11, 15, 25, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(200, 217, 230, 0.14);
+}
+
+.glass-card {
+  background: rgba(14, 21, 37, 0.95);
+  border: 1px solid rgba(86, 124, 141, 0.28);
+  box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.65);
+  transform: translateZ(0);
+}
+
+.glass-card-interactive {
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.glass-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 242, 186, 0.45);
+}
+
+.glass-navy {
+  background: rgba(12, 24, 44, 0.97);
+  border: 1px solid rgba(255, 242, 186, 0.22);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.75);
+}
+
+/* Status Glow Accents */
+.glow-emerald {
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+.glow-amber {
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.glow-crimson {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.65) !important;
+}
+
+/* Stagnation Visual Decay */
+.task-decay-warning {
+  border-color: rgba(245, 158, 11, 0.65) !important;
+  background: linear-gradient(135deg, rgba(138, 78, 42, 0.26), rgba(11, 15, 25, 0.95)) !important;
+}
+
+.task-decay-critical {
+  border-color: rgba(239, 68, 68, 0.85) !important;
+  background: linear-gradient(135deg, rgba(91, 13, 24, 0.45), rgba(11, 15, 25, 0.96)) !important;
+}
+
+/* Studio Task Blocks & Drag-Resize Handles */
+.task-card-vertical {
+  position: absolute;
+  left: 4.5rem;
+  right: 0.5rem;
+  transition: box-shadow 0.12s ease;
+  overflow: visible;
+  will-change: top, height;
+}
+
+.task-card-vertical:hover {
+  z-index: 30 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
+}
+
+.task-resize-handle-vertical {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 11px;
+  cursor: ns-resize;
+  background: linear-gradient(to bottom, transparent, rgba(255, 242, 186, 0.32));
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-resize-handle-vertical::after {
+  content: '';
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 242, 186, 0.65);
+}
+
+.task-card-horizontal {
+  position: absolute;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  transition: box-shadow 0.12s ease;
+  overflow: visible;
+  will-change: left, width;
+}
+
+.task-card-horizontal:hover {
+  z-index: 30 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
+}
+
+.task-resize-handle-horizontal {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  cursor: ew-resize;
+  background: linear-gradient(to right, transparent, rgba(255, 242, 186, 0.32));
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-resize-handle-horizontal::after {
+  content: '';
+  width: 3px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255, 242, 186, 0.65);
+}
+
+/* ==========================================================================
+   PORTFOLIO-STYLE CONVERSATIONAL RAG AI SYSTEM (Floating + Studio + Fullpage)
+   ========================================================================== */
+
+.fp-chat-floating-wrap {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 95;
+}
+
+.fp-chat-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  background: linear-gradient(135deg, #0F3C65 0%, #0B0F19 100%);
+  color: var(--buttermilk);
+  border: 2px solid var(--buttermilk);
+  border-radius: 999px;
+  padding: 8px 18px 8px 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 18px rgba(255, 242, 186, 0.2);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.fp-chat-trigger-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.85), 0 0 24px rgba(255, 242, 186, 0.35);
+}
+
+.fp-chat-trigger-avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--buttermilk);
+  color: var(--bg-obsidian);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.fp-chat-live-pulse {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 11px;
+  height: 11px;
+  background: #10B981;
+  border: 2px solid var(--bg-obsidian);
+  border-radius: 50%;
+}
+
+.fp-chat-trigger-label {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.15;
+}
+
+.fp-chat-trigger-label strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.fp-chat-trigger-label small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--buttermilk);
+}
+
+/* Floating Pop-Up Chat Drawer */
+.fp-chat-drawer {
+  position: absolute;
+  right: 0;
+  bottom: 62px;
+  width: min(440px, calc(100vw - 28px));
+  height: min(630px, calc(100vh - 110px));
+  background: #0D1424;
+  border: 1.5px solid rgba(255, 242, 186, 0.35);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.88);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: bottom right;
+}
+
+.fp-chat-drawer.open {
+  display: flex;
+  animation: fpChatPop 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fpChatPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Chat Stream & Bubbles (Used across Studio Drawer, Floating Widget & Fullpage AI) */
+.fp-chat-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+.fp-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 92%;
+}
+
+.fp-bubble-wrap.bot {
+  align-self: flex-start;
+}
+
+.fp-bubble-wrap.user {
+  align-self: flex-end;
+}
+
+.fp-bubble {
+  padding: 11px 14px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  position: relative;
+}
+
+.fp-bubble.bot {
+  background: #121B2E;
+  border: 1px solid rgba(86, 124, 141, 0.4);
+  border-bottom-left-radius: 4px;
+  color: var(--white-sand);
+}
+
+.fp-bubble.user {
+  background: linear-gradient(135deg, #0F3C65 0%, #174E80 100%);
+  border: 1px solid rgba(255, 242, 186, 0.35);
+  border-bottom-right-radius: 4px;
+  color: var(--buttermilk);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.fp-thinking-box {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.08);
+  border-left: 3px solid #10B981;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: #A7F3D0;
+  line-height: 1.4;
+}
+
+.fp-bubble-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  opacity: 0.65;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Typing Bouncing Dots */
+.fp-chat-dots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 4px 4px;
+}
+
+.fp-chat-dots span {
+  width: 7px;
+  height: 7px;
+  background: var(--buttermilk);
+  border-radius: 50%;
+  animation: fpBounce 1.15s infinite ease-in-out;
+}
+
+.fp-chat-dots span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.fp-chat-dots span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes fpBounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* Horizontal Quick Prompt Suggestion Chips */
+.fp-chat-suggestions {
+  display: flex;
+  overflow-x: auto;
+  gap: 7px;
+  padding: 8px 12px;
+  background: rgba(11, 15, 25, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-width: none;
+}
+
+.fp-chat-suggestions::-webkit-scrollbar {
+  display: none;
+}
+
+.fp-chat-chip {
+  flex: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  background: #152036;
+  color: var(--sky-blue);
+  border: 1px solid rgba(86, 124, 141, 0.45);
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.fp-chat-chip:hover {
+  background: var(--blue-coral);
+  color: var(--buttermilk);
+  border-color: var(--buttermilk);
+}
+
+/* In-Chat Action & Package Cards */
+.fp-action-card {
+  margin-top: 9px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(11, 15, 25, 0.85);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.fp-pkg-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 2px;
+  margin-top: 8px;
+}
+
+.fp-pkg-card {
+  flex: 0 0 205px;
+  background: #0B0F19;
+  border: 1px solid rgba(255, 242, 186, 0.3);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.fp-inline-booking-card {
+  margin-top: 10px;
+  background: #0B0F19;
+  border: 1.5px solid var(--buttermilk);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(11, 15, 25, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(86, 124, 141, 0.45);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 242, 186, 0.7);
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .task-card-vertical {
+    left: 3.6rem;
+    right: 0.25rem;
+  }
+
+  .fp-chat-floating-wrap {
+    right: 14px;
+    bottom: 14px;
+  }
+}
+
+/* ==========================================================================
+   DESIGN SYSTEM v2 — Refined Obsidian Interface
+   ========================================================================== */
+
+:root {
+  --ring: rgba(255, 242, 186, 0.55);
+  --hairline: rgba(200, 217, 230, 0.10);
+  --hairline-strong: rgba(200, 217, 230, 0.18);
+  --surface-1: rgba(15, 22, 38, 0.92);
+  --surface-2: rgba(20, 30, 50, 0.94);
+  --accent-grad: linear-gradient(135deg, #FFF2BA 0%, #F5D58A 45%, #10B981 120%);
+}
+
+body {
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  letter-spacing: -0.005em;
+}
+
+/* Static ambient lighting (zero per-frame cost) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 520px at 12% -8%, rgba(15, 60, 101, 0.55), transparent 60%),
+    radial-gradient(700px 480px at 100% 10%, rgba(16, 185, 129, 0.10), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgba(91, 13, 24, 0.28), transparent 60%);
+}
+
+h1, h2, .font-display {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+h1 .text-buttermilk {
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Surfaces with a subtle top highlight + hairline border */
+.glass-navy,
+.glass-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 40%),
+    var(--surface-1);
+  border-color: var(--hairline-strong) !important;
+}
+
+.glass-navy {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 20px 50px -18px rgba(0, 0, 0, 0.85);
+}
+
+/* Consistent interactive feel */
+button,
+a,
+select,
+input,
+textarea {
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-obsidian), 0 0 0 4px var(--ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(200, 217, 230, 0.38);
+}
+
+/* Modal entrance motion (works with existing opacity-0 / pointer-events-none toggles) */
+[id$='-modal'] > div {
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+}
+
+[id$='-modal'].opacity-0 > div {
+  transform: translateY(10px) scale(0.985);
+}
+
+/* ----- Chat surface polish ----- */
+.fp-chat-stream {
+  scrollbar-gutter: stable;
+}
+
+.fp-bubble {
+  font-size: 0.84rem;
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.8);
+}
+
+.fp-bubble.bot {
+  background: linear-gradient(180deg, #131D31 0%, #101828 100%);
+  border-color: var(--hairline-strong);
+}
+
+.fp-bubble.user {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #12406B 0%, #0F3C65 60%, #0B3156 100%);
+}
+
+.fp-bubble-wrap {
+  animation: fpBubbleIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fpBubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fp-bubble.bot strong {
+  color: var(--buttermilk);
+}
+
+.fp-bubble.bot ul {
+  padding-left: 0.2rem;
+}
+
+.fp-thinking-box {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.02));
+  border-radius: 10px;
+}
+
+/* Typing + progress */
+.fp-typing-bubble {
+  min-width: 240px;
+}
+
+.fp-progress {
+  margin-top: 8px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.fp-progress span {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--accent-grad);
+  animation: fpProgress 1.4s ease-in-out infinite;
+}
+
+@keyframes fpProgress {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+/* Upload attachment chip inside user bubble */
+.fp-upload-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 6px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: rgba(11, 15, 25, 0.55);
+  border: 1px solid rgba(255, 242, 186, 0.18);
+}
+
+.fp-upload-thumb {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fp-upload-file-icon {
+  width: 44px;
+  height: 52px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #0B0F19;
+  background: linear-gradient(160deg, #FFF2BA, #F59E0B);
+}
+
+.fp-upload-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fp-upload-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.64rem;
+  color: var(--sky-blue);
+  opacity: 0.8;
+}
+
+/* Drag-and-drop target highlight */
+.fp-drop-active {
+  position: relative;
+}
+
+.fp-drop-active::after {
+  content: 'Drop image, PDF or timetable to let FlowPlan AI read it';
+  position: absolute;
+  inset: 8px;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+  border-radius: 18px;
+  border: 2px dashed var(--buttermilk);
+  background: rgba(11, 15, 25, 0.88);
+  color: var(--buttermilk);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Suggestion chips */
+.fp-chat-chip {
+  background: rgba(21, 32, 54, 0.9);
+  border-color: var(--hairline-strong);
+}
+
+.fp-chat-chip:hover {
+  transform: translateY(-1px);
+}
+
+/* Pricing cards */
+.fp-pkg-card {
+  background: linear-gradient(180deg, #111A2C, #0B0F19);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.fp-pkg-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--buttermilk);
+}
+
+/* Floating trigger: softer, premium */
+.fp-chat-trigger-btn {
+  border-width: 1px;
+  background: linear-gradient(135deg, rgba(18, 64, 107, 0.96), rgba(11, 15, 25, 0.96));
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  .fp-bubble-wrap,
+  .fp-progress span,
+  [id$='-modal'] > div {
+    animation: none !important;
+    transition: none !important;
+  }
+}

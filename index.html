@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FlowPlan OS — Autonomous Circadian & Discipline Operating System</title>
+
+  <!-- Progressive Web App (PWA) & Mobile Manifest -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0B0F19" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FlowPlan OS" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+
+  <!-- External CDN Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Custom Brand & Obsidian Palette Configuration -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+            display: ['"Space Grotesk"', 'Inter', 'sans-serif']
+          },
+          colors: {
+            obsidian: '#0B0F19',
+            midnight: '#0F3C65',
+            navy: '#2F4156',
+            tealAccent: '#567C8D',
+            blueCoral: '#083B3A',
+            cognac: '#8A4E2A',
+            rougeNoir: '#5B0D18',
+            buttermilk: '#FFF2BA',
+            beige: '#F5EFEB',
+            whiteSand: '#E7E3DD',
+            skyBlue: '#C8D9E6'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="relative selection:bg-buttermilk selection:text-obsidian overflow-x-hidden w-full max-w-full bg-obsidian text-whiteSand font-sans">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[110] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Background Three.js Kinetic WebGL Canvas -->
+  <canvas id="three-canvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- ==================== TOP NAVIGATION ==================== -->
+  <nav class="fixed top-0 left-0 w-full z-40 px-3 sm:px-6 py-3 sm:py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between glass-navy px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-2xl border border-tealAccent/30 shadow-2xl">
+
+      <!-- Brand Logo (Triple-click unlocks Master Command Center) -->
+      <a href="#" id="site-logo" class="flex items-center gap-2.5 group cursor-pointer select-none">
+        <span class="w-3 h-3 rounded-full bg-buttermilk shadow-[0_0_12px_#FFF2BA] group-hover:scale-110 transition-transform"></span>
+        <span class="text-base sm:text-xl font-bold tracking-tight text-white font-mono">FLOWPLAN <span class="text-xs text-buttermilk">OS</span></span>
+      </a>
+
+      <!-- Desktop Navigation Anchors -->
+      <div class="hidden md:flex items-center gap-6 text-xs font-mono text-slate-300">
+        <a href="#problem" class="hover:text-buttermilk transition-colors">Philosophy</a>
+        <a href="#circadian" class="hover:text-buttermilk transition-colors">Circadian Horizons</a>
+        <a href="#waterfall" class="hover:text-buttermilk transition-colors">RAG & Cascade</a>
+        <a href="#pricing" class="hover:text-buttermilk transition-colors">Pricing</a>
+      </div>
+
+      <!-- Header Controls -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Master Admin Command Center Trigger Button (Visible only when authenticated as Master Admin) -->
+        <button id="nav-admin-portal-btn" class="hidden px-3 py-1.5 rounded-xl bg-cognac text-buttermilk font-mono font-bold text-xs border border-buttermilk shadow-[0_0_15px_rgba(255,242,186,0.3)] animate-pulse cursor-pointer">
+          👑 The Command Center
+        </button>
+
+        <!-- PWA / Add to Home Screen Header Button -->
+        <button id="btn-install-pwa" class="btn-pwa-install-trigger hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-skyBlue border border-skyBlue/30 hover:border-buttermilk hover:text-white rounded-xl transition-all cursor-pointer" title="Install FlowPlan OS on this device home screen">
+          <span>📲</span> Add to Home Screen
+        </button>
+
+        <button id="nav-support-btn" class="hidden sm:inline-block px-3 py-1.5 text-xs font-mono text-slate-300 hover:text-white transition-colors cursor-pointer">
+          Support & Feedback
+        </button>
+
+        <button id="nav-auth-btn" class="px-3.5 py-1.5 text-xs font-mono text-whiteSand border border-tealAccent/40 hover:border-buttermilk rounded-xl transition-all cursor-pointer">
+          Sign In
+        </button>
+
+        <button id="nav-ai-bot-btn" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-950/90 border border-indigo-400/60 text-buttermilk hover:bg-indigo-900 transition-all font-mono flex items-center gap-1.5 cursor-pointer">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> FlowPlan AI Bot
+        </button>
+
+        <button id="nav-create-btn" class="px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs font-bold rounded-xl bg-buttermilk text-obsidian hover:bg-white transition-all shadow-[0_0_15px_rgba(255,242,186,0.35)] font-mono flex items-center gap-1.5 cursor-pointer">
+          <span>✨</span> Open Schedule Studio
+        </button>
+
+        <button id="mobile-menu-btn" class="md:hidden text-whiteSand text-2xl p-1 focus:outline-none cursor-pointer">&equiv;</button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu-drawer" class="hidden md:hidden glass-navy border border-tealAccent/30 rounded-2xl mx-auto mt-2 p-4 flex flex-col gap-3 font-mono text-xs">
+      <a href="#problem" class="text-slate-300 hover:text-white py-1">Philosophy</a>
+      <a href="#circadian" class="text-slate-300 hover:text-white py-1">Circadian Horizons</a>
+      <a href="#waterfall" class="text-slate-300 hover:text-white py-1">RAG & Cascade</a>
+      <a href="#pricing" class="text-slate-300 hover:text-white py-1">Pricing</a>
+      <hr class="border-white/10" />
+      <button id="mob-install-pwa" class="btn-pwa-install-trigger text-left text-skyBlue font-bold py-1 cursor-pointer flex items-center gap-2">
+        <span>📲</span> Add Planner to Device Home Screen
+      </button>
+      <button id="mob-support-btn" class="text-left text-skyBlue py-1 cursor-pointer">Support & Feedback</button>
+      <button id="mob-ai-bot-btn" class="text-left text-emerald-300 font-bold py-1 cursor-pointer">🧠 FlowPlan AI RAG Bot</button>
+      <button id="mob-create-btn" class="text-left text-buttermilk font-bold py-1 cursor-pointer">✨ Open Schedule Studio</button>
+    </div>
+  </nav>
+
+  <!-- ==================== HERO SECTION ==================== -->
+  <header class="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 pt-32 pb-20 text-center max-w-5xl mx-auto">
+    <div class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-blueCoral/80 border border-tealAccent/40 text-xs font-medium text-buttermilk mb-6 shadow-lg font-mono">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+      Autonomous Circadian Architecture &amp; Gemini 3.5 Full-Product RAG Intelligence
+    </div>
+
+    <h1 class="text-3xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.12] text-white">
+      When your day shifts, your schedule should <span class="text-buttermilk italic">heal itself.</span>
+    </h1>
+
+    <p class="mt-6 text-sm sm:text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+      An ultra-disciplined life operating system engineered for behavioral compounding. Drill into any day across Yearly, Monthly, and Weekly horizons, reorganize on the fly, enforce EOD accountability, and command your entire workspace via an integrated Gemini 3.5 RAG Copilot.
+    </p>
+
+    <div class="mt-8 flex gap-3 flex-wrap justify-center font-mono">
+      <button id="hero-create-btn" class="px-8 py-4 text-xs font-bold uppercase rounded-xl bg-buttermilk text-obsidian shadow-[0_0_35px_rgba(255,242,186,0.35)] hover:bg-white transition-all transform hover:-translate-y-0.5 cursor-pointer">
+        Launch Schedule Studio
+      </button>
+      <button id="hero-ai-bot-btn" class="px-8 py-4 text-xs font-bold uppercase rounded-xl bg-indigo-950/90 text-buttermilk border border-indigo-400/60 hover:bg-indigo-900 transition-all cursor-pointer flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Talk to FlowPlan AI Bot
+      </button>
+      <a href="#pricing" class="px-8 py-4 text-xs font-semibold uppercase rounded-xl glass-navy text-white border border-tealAccent/40 hover:border-white transition-all">
+        View Pricing Tiers ($0 / $5 / $14 / $35)
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== PHILOSOPHY SECTION ==================== -->
+  <section id="problem" class="relative z-10 py-24 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div class="glass-navy p-8 sm:p-12 rounded-3xl border border-tealAccent/30 shadow-2xl">
+      <span class="text-xs font-mono text-buttermilk uppercase tracking-widest">Friction-Elimination & Behavioral Compounding</span>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 mb-6">Engineered to enforce discipline, not passively list tasks.</h2>
+      <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+        Passive to-do lists fail because they lack biological alignment, visual decay, and evening accountability. FlowPlan OS unifies 05:00–01:00 circadian time-blocking, individual day drill-downs across Yearly/Monthly/Weekly matrices, Notion-style execution databases with visual stagnation decay, real-time Web Audio API Level 2 & Level 3 focus alarms, and an unskippable End-of-Day Audit.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== CIRCADIAN BIOLOGY ==================== -->
+  <section id="circadian" class="relative z-10 py-20 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="text-xs font-mono text-skyBlue uppercase tracking-widest">Biological Synchronization (05:00 — 01:00)</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Built around physiological energy curves</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between glow-emerald">
+        <div>
+          <div class="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-400 flex items-center justify-center text-emerald-300 font-mono text-xs font-bold mb-4">01</div>
+          <h3 class="text-lg font-bold text-white mb-2">Peak Window (Prime Focus)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Reserved exclusively for high-cognitive analytical execution: Mathematics, System Architecture, Deep Coding, and Level 3 Critical deliverables.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 text-[10px] font-mono text-emerald-300">05:00 AM — 12:00 PM &amp; 04:00 PM — 07:00 PM</div>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between glow-amber">
+        <div>
+          <div class="w-8 h-8 rounded-lg bg-cognac border border-amber-400 flex items-center justify-center text-white font-mono text-xs font-bold mb-4">02</div>
+          <h3 class="text-lg font-bold text-white mb-2">Trough Window (Tactical Ops)</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Circadian dip buffer protecting against cognitive burnout. Scheduled for administrative syncs, comms triage, and routine operational work.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 text-[10px] font-mono text-amber-200">12:00 PM — 04:00 PM Slot</div>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl border border-white/10 flex flex-col justify-between glow-crimson">
+        <div>
+          <div class="w-8 h-8 rounded-lg bg-rougeNoir border border-rose-400 flex items-center justify-center text-white font-mono text-xs font-bold mb-4">03</div>
+          <h3 class="text-lg font-bold text-white mb-2">Recovery &amp; EOD Audit Window</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Decompression, deferred task penalty execution, and the unskippable End-of-Day (EOD) Discipline Index audit before nocturnal lockdown.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 text-[10px] font-mono text-rose-300">08:00 PM — 01:00 AM Slot</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== RAG & CASCADE ENGINE ==================== -->
+  <section id="waterfall" class="relative z-10 py-20 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div class="glass-navy p-8 sm:p-12 rounded-3xl border border-tealAccent/30 shadow-2xl flex flex-col md:flex-row gap-8 items-center">
+      <div class="flex-1">
+        <span class="text-xs font-mono text-buttermilk uppercase tracking-widest">Full-Product RAG Copilot &amp; Day Drill-Down</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2 mb-4">Open any day in Yearly, Monthly, or Weekly views &amp; reorganize instantly</h2>
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">
+          Click any individual day in the Yearly, Monthly, or Weekly planners to open its Daily Studio, drag-and-drop tasks between days, cascade-sort by priority, or instruct the RAG Copilot to reorganize your schedule, workspace blocks, and uploaded syllabi.
+        </p>
+        <button class="open-builder-trigger px-5 py-2.5 rounded-xl bg-blueCoral border border-tealAccent text-xs font-mono text-buttermilk font-bold cursor-pointer">
+          Open Schedule Studio ➔
+        </button>
+      </div>
+      <div class="w-full md:w-80 p-4 rounded-2xl bg-obsidian/90 border border-white/10 font-mono text-xs space-y-2">
+        <div class="p-2 rounded bg-rougeNoir text-white text-[11px] font-bold flex justify-between">
+          <span>09:00 AM DEEP ARCH</span><span>L3 CRITICAL</span>
+        </div>
+        <div class="p-2 rounded bg-blueCoral text-skyBlue text-[11px] flex justify-between">
+          <span>11:00 AM SYSTEMS LAB</span><span>PEAK</span>
+        </div>
+        <div class="text-[10px] text-emerald-400 text-center py-1">⬇ RAG Copilot + Priority Cascade ⬇</div>
+        <div class="p-2 rounded bg-cognac text-buttermilk text-[11px] flex justify-between">
+          <span>08:00 PM EOD AUDIT</span><span>DISCIPLINE 96%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== PRICING MATRIX ==================== -->
+  <section id="pricing" class="relative z-10 py-24 px-4 sm:px-6 max-w-7xl mx-auto">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-skyBlue uppercase tracking-widest">Commercial Tiers</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold font-mono text-white mt-1">Choose Your Operational Horizon</h2>
+      <p id="pdf-quota-display" class="text-xs text-slate-400 mt-2 font-mono">Guest Mode Active</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="glass-navy p-6 rounded-2xl flex flex-col justify-between border border-white/10">
+        <div>
+          <h4 class="font-bold text-white font-mono">Free Sandbox</h4>
+          <div class="text-3xl font-bold my-4 font-mono text-buttermilk">$0</div>
+          <ul class="text-xs text-slate-300 space-y-2 mb-6">
+            <li>✓ Local-First IndexedDB Persistence</li>
+            <li>✓ Daily &amp; Weekly Canvas Studio</li>
+            <li>✓ Integrated RAG Copilot</li>
+            <li>✓ Daily Vector PDF Exports</li>
+          </ul>
+        </div>
+        <button class="open-builder-trigger py-2.5 rounded-xl bg-navy text-white text-xs font-mono border border-white/20 hover:bg-slate-800 transition-all cursor-pointer">Launch Studio</button>
+      </div>
+
+      <div class="glass-navy p-6 rounded-2xl flex flex-col justify-between border border-white/10">
+        <div>
+          <h4 class="font-bold text-white font-mono">Daily Pro</h4>
+          <div class="text-3xl font-bold my-4 font-mono text-buttermilk">$10 <span class="text-xs text-slate-400">/mo</span></div>
+          <ul class="text-xs text-slate-300 space-y-2 mb-6">
+            <li>✓ Everything in Free</li>
+            <li>✓ Multimodal PDF &amp; Vision RAG</li>
+            <li>✓ Priority Circadian Sorter</li>
+            <li>✓ Level 2 &amp; 3 Web Audio Alarms</li>
+          </ul>
+        </div>
+        <button onclick="openPaymentModal('Daily Pro Pass', '$10/month')" class="py-2.5 rounded-xl bg-blueCoral text-buttermilk text-xs font-mono font-bold border border-tealAccent/40 hover:bg-tealAccent/30 transition-all cursor-pointer">Select Plan</button>
+      </div>
+
+      <div class="glass-navy p-6 rounded-2xl border-2 border-skyBlue flex flex-col justify-between shadow-2xl relative">
+        <span class="absolute -top-3 right-4 px-2.5 py-0.5 rounded-full bg-skyBlue text-obsidian font-bold font-mono text-[9px] uppercase tracking-wide">Popular</span>
+        <div>
+          <h4 class="font-bold text-white font-mono">Weekly Pro</h4>
+          <div class="text-3xl font-bold my-4 font-mono text-buttermilk">$14 <span class="text-xs text-slate-400">/mo</span></div>
+          <ul class="text-xs text-slate-300 space-y-2 mb-6">
+            <li>✓ Everything in Daily Pro</li>
+            <li>✓ 7-Day Matrix Day Drill-Down</li>
+            <li>✓ Horizontal Grid Classroom PDF</li>
+            <li>✓ Modular Workspace &amp; Decay DB</li>
+          </ul>
+        </div>
+        <button onclick="openPaymentModal('Weekly Pro Pass', '$14/month')" class="py-2.5 rounded-xl bg-tealAccent text-white text-xs font-mono font-bold shadow-lg hover:bg-white hover:text-obsidian transition-all cursor-pointer">Select Plan</button>
+      </div>
+
+      <div class="glass-navy p-6 rounded-2xl border-2 border-buttermilk flex flex-col justify-between shadow-2xl">
+        <div>
+          <h4 class="font-bold text-white font-mono">Monthly &amp; Yearly Master</h4>
+          <div class="text-3xl font-bold my-4 font-mono text-buttermilk">$35 <span class="text-xs text-slate-400">/mo</span></div>
+          <ul class="text-xs text-slate-300 space-y-2 mb-6">
+            <li>✓ Full 30-Day &amp; 365-Day Planners</li>
+            <li>✓ Individual Day Drill-Down &amp; Reorg</li>
+            <li>✓ 7-Page Vertical PDF Dossiers</li>
+            <li>✓ Unskippable EOD Discipline Index</li>
+          </ul>
+        </div>
+        <button onclick="openPaymentModal('Monthly Master Pass', '$35/month')" class="py-2.5 rounded-xl bg-cognac text-buttermilk text-xs font-mono font-bold shadow-lg hover:bg-buttermilk hover:text-obsidian transition-all cursor-pointer">Select Plan</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="relative z-10 py-12 border-t border-white/10 text-center text-xs text-slate-400 font-mono space-y-3">
+    <div class="flex items-center justify-center gap-6 flex-wrap">
+      <button onclick="openLegalModal('privacy')" class="hover:text-white transition-colors cursor-pointer">Privacy Policy (GDPR / CCPA)</button>
+      <button onclick="openLegalModal('terms')" class="hover:text-white transition-colors cursor-pointer">Terms &amp; Liability Waiver</button>
+      <button onclick="openLegalModal('security')" class="hover:text-white transition-colors cursor-pointer">Security Architecture</button>
+    </div>
+    <p>&copy; <span id="current-year">2026</span> FlowPlan OS Technologies Inc. All rights reserved.</p>
+  </footer>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 1: SCHEDULE STUDIO & FULL-PRODUCT OPERATING WORKSPACE        -->
+  <!-- ================================================================== -->
+  <div id="schedule-builder-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-[1440px] rounded-3xl p-3 sm:p-5 border border-tealAccent/40 flex flex-col h-[95vh] overflow-hidden">
+
+      <!-- Studio Top Header Bar -->
+      <div class="flex flex-col gap-2.5 pb-3 border-b border-white/10 shrink-0">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- Left: Studio Title + Active Horizon Breadcrumb -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-buttermilk shadow-[0_0_8px_#FFF2BA]"></span>
+              <h3 class="text-sm sm:text-base font-bold text-white font-mono">FlowPlan Studio</h3>
+            </div>
+            <div id="studio-active-breadcrumb" class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-white/10 font-mono text-[11px] text-skyBlue">
+              Oct 2026 • Week 1 • Mon
+            </div>
+          </div>
+
+          <!-- Center: 6-Module Unified Switcher (Daily, Weekly, Monthly, Yearly, Workspace, EOD Audit) -->
+          <div class="flex items-center gap-1 bg-slate-950/90 p-1 rounded-xl border border-white/10 font-mono text-xs overflow-x-auto max-w-full">
+            <button id="view-tab-daily" class="px-3 py-1.5 rounded-lg bg-tealAccent text-white font-bold transition-all cursor-pointer whitespace-nowrap">Daily</button>
+            <button id="view-tab-weekly" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer whitespace-nowrap">Weekly</button>
+            <button id="view-tab-monthly" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer whitespace-nowrap">Monthly</button>
+            <button id="view-tab-yearly" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer whitespace-nowrap">Yearly</button>
+            <button id="view-tab-workspace" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer whitespace-nowrap">🧱 Workspace</button>
+            <button id="view-tab-audit" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer whitespace-nowrap">⚖️ EOD Audit</button>
+          </div>
+
+          <!-- Right: Action Controls -->
+          <div class="flex items-center gap-2">
+            <button id="btn-open-file-modal" class="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-slate-900 border border-tealAccent/40 text-xs font-mono text-skyBlue items-center gap-1.5 hover:border-buttermilk cursor-pointer">
+              <span>📄</span> Import File
+            </button>
+            <button id="btn-toggle-finalize" class="hidden md:inline-block px-3 py-1.5 rounded-xl bg-slate-900 border border-tealAccent/30 text-xs font-mono text-buttermilk cursor-pointer">
+              ✂ <span id="finalize-label">Finalize Day</span>
+            </button>
+            <button id="btn-download-pdf" class="px-3 py-1.5 rounded-xl bg-blueCoral border border-tealAccent/40 text-xs font-mono font-bold text-buttermilk cursor-pointer">📥 Export PDF</button>
+            <button id="btn-toggle-ai-chat" class="px-3.5 py-1.5 rounded-xl bg-indigo-950 border border-indigo-400/60 text-xs font-mono font-bold text-indigo-200 shadow-[0_0_15px_rgba(99,102,241,0.25)] cursor-pointer">
+              🧠 RAG Copilot
+            </button>
+            <span id="studio-ai-credits-badge" class="hidden xl:inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-950/90 border border-indigo-400/40 font-mono text-[11px] text-skyBlue">⚡ Credits: 5/5</span>
+            <button id="btn-close-modal" class="text-white text-2xl font-bold px-1.5 hover:text-buttermilk cursor-pointer">&times;</button>
+          </div>
+        </div>
+
+        <!-- Universal Day & Week Quick-Navigation Bar (Click any Week or Day to open & reorganize) -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <!-- Month & Week Selectors -->
+          <div class="flex items-center gap-1.5 font-mono text-xs">
+            <select id="studio-month-select" class="bg-slate-900 border border-white/15 rounded-lg px-2.5 py-1 text-buttermilk font-bold outline-none cursor-pointer">
+              <option value="0">January</option>
+              <option value="1">February</option>
+              <option value="2">March</option>
+              <option value="3">April</option>
+              <option value="4">May</option>
+              <option value="5">June</option>
+              <option value="6">July</option>
+              <option value="7">August</option>
+              <option value="8">September</option>
+              <option value="9" selected>October</option>
+              <option value="10">November</option>
+              <option value="11">December</option>
+            </select>
+
+            <select id="studio-week-select" class="bg-slate-900 border border-white/15 rounded-lg px-2.5 py-1 text-skyBlue font-bold outline-none cursor-pointer">
+              <option value="Week 1">Week 1 (Days 1–7)</option>
+              <option value="Week 2">Week 2 (Days 8–14)</option>
+              <option value="Week 3">Week 3 (Days 15–21)</option>
+              <option value="Week 4">Week 4 (Days 22–28)</option>
+              <option value="Residual">Residual (Days 29–31)</option>
+            </select>
+          </div>
+
+          <!-- Day Chips Bar (Mon - Sun) — Works on both Desktop & Mobile to jump directly to any Day -->
+          <div id="mobile-day-carousel" class="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar text-xs font-mono">
+            <button data-day="Mon" class="mobile-day-chip px-3 py-1 rounded-lg bg-blueCoral text-buttermilk font-bold border border-tealAccent/40 shrink-0 cursor-pointer">Mon</button>
+            <button data-day="Tue" class="mobile-day-chip px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white shrink-0 cursor-pointer">Tue</button>
+            <button data-day="Wed" class="mobile-day-chip px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white shrink-0 cursor-pointer">Wed</button>
+            <button data-day="Thu" class="mobile-day-chip px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white shrink-0 cursor-pointer">Thu</button>
+            <button data-day="Fri" class="mobile-day-chip px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white shrink-0 cursor-pointer">Fri</button>
+            <button data-day="Sat" class="mobile-day-chip px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white shrink-0 cursor-pointer">Sat</button>
+            <button data-day="Sun" class="mobile-day-chip px-3 py-1 rounded-lg bg-slate-900 text-slate-400 hover:text-white shrink-0 cursor-pointer">Sun</button>
+          </div>
+
+          <!-- Quick Add + Reorganize Active Day Controls -->
+          <div class="hidden sm:flex items-center gap-1.5 font-mono text-xs">
+            <button id="btn-quick-add-slot" class="px-2.5 py-1 rounded-lg bg-buttermilk text-obsidian font-bold hover:bg-white transition cursor-pointer">
+              + Add Task
+            </button>
+            <button id="btn-reorg-active-day" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-tealAccent/40 text-buttermilk hover:border-buttermilk transition cursor-pointer">
+              ⚡ Reorganize Day
+            </button>
+            <button id="btn-day-notes-active" class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 transition cursor-pointer" title="Daily Strategic Notes & Targets for Active Day">
+              📝 Day Notes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Studio Body: Control Sidebar + Main Dynamic Canvas + RAG Copilot Drawer -->
+      <div class="flex flex-1 gap-3 overflow-hidden py-2 relative">
+
+        <!-- Left Control Sidebar (Time Horizon, Orientation, Priority Cascade, Energy/Priority Filters, Alarms) -->
+        <aside class="hidden lg:flex w-64 flex-col justify-between glass-card rounded-2xl p-4 border border-white/10 font-mono text-xs shrink-0 overflow-y-auto">
+          <div class="space-y-4">
+
+            <!-- TIME HORIZON BOUNDS (20h 05:00-01:00, 24h, 12h, 8h) -->
+            <div>
+              <label class="block text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-bold">Operational Horizon</label>
+              <div class="grid grid-cols-3 gap-1 bg-slate-900/90 p-1 rounded-xl border border-white/10 text-center">
+                <button id="m-hz-24" class="px-2 py-1 rounded-lg bg-tealAccent text-white font-bold transition-all text-[11px] cursor-pointer" title="05:00 AM to 01:00 AM Elite Window">05–01h</button>
+                <button id="m-hz-12" class="px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-all text-[11px] cursor-pointer">12h</button>
+                <button id="m-hz-8" class="px-2 py-1 rounded-lg text-slate-400 hover:text-white transition-all text-[11px] cursor-pointer">8h</button>
+              </div>
+            </div>
+
+            <!-- LAYOUT ORIENTATION (VERTICAL / HORIZONTAL) -->
+            <div>
+              <label class="block text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-bold">Layout Orientation</label>
+              <button id="btn-toggle-layout" class="w-full py-2 px-3 rounded-xl bg-slate-900/90 border border-white/10 text-slate-300 hover:text-white flex items-center justify-between cursor-pointer">
+                <span id="layout-label">Vertical Stack</span>
+                <span id="layout-icon">↕</span>
+              </button>
+            </div>
+
+            <!-- SORT & REORGANIZE BY PRIORITY / ENERGY CASCADE -->
+            <div>
+              <label class="block text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-bold">Day Reorganizer</label>
+              <button id="btn-sort-priority" class="w-full py-2 px-3 rounded-xl bg-blueCoral border border-tealAccent/40 text-buttermilk font-bold flex items-center justify-between hover:bg-tealAccent/30 transition-all cursor-pointer">
+                <span>⚡ Priority Cascade</span>
+                <span>➔</span>
+              </button>
+            </div>
+
+            <!-- PRIORITY FILTER BUTTONS & LIVE BADGES -->
+            <div>
+              <label class="block text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-bold">Priority Filter</label>
+              <div class="space-y-1.5">
+                <button data-filter="ALL" class="priority-filter-btn w-full text-left px-3 py-1.5 rounded-lg bg-blueCoral border border-tealAccent/40 text-buttermilk font-semibold flex items-center justify-between cursor-pointer">
+                  <span>All Tasks</span>
+                  <span id="m-badge-all" class="text-[10px] px-1.5 py-0.5 rounded bg-obsidian text-slate-300">0</span>
+                </button>
+                <button data-filter="High" class="priority-filter-btn w-full text-left px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-between cursor-pointer">
+                  <span>High / L3 Critical</span>
+                  <span id="m-badge-high" class="text-[10px] px-1.5 py-0.5 rounded bg-obsidian text-rose-300">0</span>
+                </button>
+                <button data-filter="Medium" class="priority-filter-btn w-full text-left px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-between cursor-pointer">
+                  <span>Medium / L2 Important</span>
+                  <span id="m-badge-medium" class="text-[10px] px-1.5 py-0.5 rounded bg-obsidian text-amber-200">0</span>
+                </button>
+                <button data-filter="Low" class="priority-filter-btn w-full text-left px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-between cursor-pointer">
+                  <span>Low / L1 Routine</span>
+                  <span id="m-badge-low" class="text-[10px] px-1.5 py-0.5 rounded bg-obsidian text-skyBlue">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- DISCIPLINE INDEX TELEMETRY MINI-CARD -->
+            <div class="p-3 rounded-xl bg-obsidian/80 border border-emerald-500/30 space-y-1">
+              <div class="flex items-center justify-between text-[10px] text-slate-400">
+                <span>DISCIPLINE INDEX</span>
+                <span id="sidebar-discipline-grade" class="text-emerald-400 font-bold">RANK S</span>
+              </div>
+              <div id="sidebar-discipline-score" class="text-xl font-extrabold text-white">94%</div>
+              <div class="text-[10px] text-skyBlue">L2 &amp; L3 Real-Time Alarms Active</div>
+            </div>
+          </div>
+
+          <!-- DEVICE NOTIFICATIONS, LIVE ALARM TEST & PWA INSTALL -->
+          <div class="pt-3 border-t border-white/10 space-y-2">
+            <button id="btn-enable-notifications" class="w-full py-2 px-3 rounded-xl bg-slate-900/80 border border-white/10 text-slate-300 hover:text-white flex items-center justify-between cursor-pointer">
+              <span>🔔 Push Alerts</span>
+              <span id="notification-perm-status" class="text-[10px] text-skyBlue">Arm</span>
+            </button>
+            <button id="btn-test-l3-alarm" class="w-full py-2 px-3 rounded-xl bg-rougeNoir/80 border border-rose-500/40 text-rose-200 hover:bg-rougeNoir flex items-center justify-between cursor-pointer">
+              <span>🚨 Focus Alarm</span>
+              <span class="text-[10px] text-buttermilk">Trigger</span>
+            </button>
+            <button id="sidebar-install-pwa" class="btn-pwa-install-trigger w-full py-2 px-3 rounded-xl bg-slate-900/80 border border-tealAccent/30 text-skyBlue hover:text-white flex items-center justify-between cursor-pointer" title="Install FlowPlan on your device">
+              <span>📲 Install App (PWA)</span>
+              <span class="text-[10px] text-buttermilk">Install</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Dynamic Canvas Container (Renders Daily, Weekly, Monthly, Yearly, Workspace, or EOD Audit) -->
+        <div id="canvas-scroll-container" class="flex-1 glass-card rounded-2xl p-3 sm:p-4 overflow-auto relative border border-white/10">
+          <div id="modal-grid-canvas" class="relative select-none w-full flex-1"></div>
+        </div>
+
+        <!-- Integrated Full-Product RAG Copilot Drawer (Voice + Files + Live State Retrieval & Action Execution) -->
+        <div id="ai-chat-drawer" class="w-80 sm:w-96 glass-navy border border-indigo-500/40 rounded-2xl p-3.5 flex flex-col justify-between hidden z-20 shrink-0">
+          <div class="flex items-center justify-between pb-2.5 border-b border-white/10">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-buttermilk text-obsidian font-mono font-extrabold text-xs grid place-items-center relative shrink-0">
+                FP
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-obsidian absolute -right-0.5 -bottom-0.5"></span>
+              </div>
+              <div>
+                <span class="font-bold text-xs text-white font-mono flex items-center gap-1.5">
+                  FlowPlan AI <span class="px-1.5 py-0.2 rounded bg-indigo-500/30 border border-indigo-400/50 text-[9px] text-buttermilk">GEMINI 3.5 RAG</span>
+                </span>
+                <span id="rag-index-status" class="block text-[10px] font-mono text-skyBlue">
+                  Online 🟢 • Live Schedule &amp; Docs
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button id="btn-expand-ai-fullpage" title="Open Fullscreen AI Consultation & Command Hub" class="text-xs px-2 py-1 rounded-lg bg-slate-900 border border-white/15 text-buttermilk hover:bg-blueCoral cursor-pointer">⛶</button>
+              <button id="btn-toggle-voice-feedback" title="Toggle Voice Audio Feedback (TTS)" class="text-xs px-2 py-1 rounded-lg bg-slate-900 border border-white/15 text-buttermilk cursor-pointer">🔊</button>
+              <button id="btn-close-ai-drawer" class="text-slate-400 text-lg hover:text-white px-1 cursor-pointer">&times;</button>
+            </div>
+          </div>
+
+          <div id="ai-chat-messages" class="fp-chat-stream my-1"></div>
+
+          <!-- Portfolio-Style Horizontal Quick Prompt Chips -->
+          <div id="studio-chat-suggestions" class="fp-chat-suggestions rounded-xl mb-2">
+            <button class="fp-chat-chip" data-q="Analyze my current schedule and free circadian windows">🔍 Analyze Schedule</button>
+            <button class="fp-chat-chip" data-q="Plan deep work sprints from 8am to 11am Monday to Friday">⚡ Plan Deep Work Week</button>
+            <button class="fp-chat-chip" data-q="Reorganize my active day by priority and energy curve">🔄 Reorganize Day</button>
+            <button class="fp-chat-chip" data-q="What is my current Discipline Index and EOD Audit status?">📊 Discipline Audit</button>
+            <button class="fp-chat-chip" data-q="What are your FlowPlan OS pricing plans and features?">💎 Plans &amp; Pricing</button>
+            <button class="fp-chat-chip" data-q="I want to upgrade and book a FlowPlan Pro plan right now">🚀 Upgrade / Book Plan</button>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-white/10">
+            <input type="file" id="ai-chat-file-input" multiple accept="image/*,.pdf,.txt,.md,.csv,.ics" class="hidden" />
+
+            <div class="flex items-center gap-1.5">
+              <button id="btn-ai-attach-file" title="Upload & Index Syllabus PDF / Timetable Image into RAG" class="p-2 rounded-xl bg-slate-900 border border-white/20 text-slate-300 hover:text-buttermilk cursor-pointer">
+                📎
+              </button>
+              <button id="btn-ai-voice-record" title="Voice Dictation" class="p-2 rounded-xl bg-slate-900 border border-white/20 text-slate-300 hover:text-rose-400 cursor-pointer">
+                🎙️
+              </button>
+              <input type="text" id="ai-user-prompt" placeholder="Ask FlowPlan AI or command schedule..." class="flex-1 bg-slate-900 border border-white/20 rounded-xl px-3 py-2 text-white text-xs outline-none font-mono focus:border-buttermilk" />
+              <button id="btn-submit-ai-prompt" class="px-3.5 py-2 rounded-xl bg-buttermilk text-obsidian font-bold text-xs font-mono hover:bg-white cursor-pointer">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Sticky Action Bar -->
+      <div class="mobile-action-bar sm:hidden flex items-center justify-between pt-2 border-t border-white/10">
+        <button id="btn-mob-add-task" class="px-2.5 py-1.5 rounded-xl bg-buttermilk text-obsidian font-bold font-mono text-xs cursor-pointer">+ Task</button>
+        <button id="btn-mob-day-notes" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs cursor-pointer">📝 Note</button>
+        <button id="btn-mob-open-file" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-tealAccent/30 text-skyBlue font-mono text-xs cursor-pointer">📄 File</button>
+        <button id="btn-mob-ai-chat" class="px-2.5 py-1.5 rounded-xl bg-indigo-950 border border-indigo-400/50 text-indigo-200 font-bold font-mono text-xs cursor-pointer">🧠 RAG</button>
+        <button id="btn-mob-pdf" class="px-2.5 py-1.5 rounded-xl bg-blueCoral border border-tealAccent/40 text-buttermilk text-xs font-mono cursor-pointer">📥 PDF</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 2: SYLLABUS / TIMETABLE DOCUMENT RAG IMPORT MODAL            -->
+  <!-- ================================================================== -->
+  <div id="file-upload-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-lg rounded-3xl p-6 border border-tealAccent/40 shadow-2xl text-xs space-y-4 font-mono">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📄</span> Index Document / Timetable into RAG
+        </h3>
+        <button id="btn-close-file-modal" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <p class="text-slate-300 font-sans text-xs">
+        Upload a course syllabus (PDF/TXT) or timetable screenshot (PNG/JPG/WEBP). The document will be indexed into your RAG knowledge base and parsed into circadian time blocks.
+      </p>
+
+      <div id="dropzone-area" class="border-2 border-dashed border-tealAccent/40 hover:border-buttermilk rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-obsidian/60">
+        <span class="text-3xl mb-2">📁</span>
+        <span class="font-bold text-white mb-1">Click to browse or drop file here</span>
+        <span class="text-[10px] text-slate-400 font-sans">Supported: PDF, TXT, PNG, JPG, WEBP (Up to 25MB)</span>
+        <input type="file" id="modal-file-input" accept="image/*,.pdf,.txt,.md,.csv,.ics" class="hidden" />
+      </div>
+      <div id="selected-file-label" class="text-buttermilk text-[11px] truncate hidden"></div>
+
+      <div>
+        <label class="block text-[10px] text-slate-400 uppercase mb-1">Placement Instructions (Optional)</label>
+        <input type="text" id="modal-file-notes" placeholder="e.g. Schedule classes on Week 1 Mon-Fri, or index for Q&A" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none" />
+      </div>
+
+      <button id="btn-process-file-ai" class="w-full py-3 rounded-xl bg-buttermilk text-obsidian font-bold font-mono text-xs hover:bg-white transition-all shadow-lg cursor-pointer">
+        Index into RAG &amp; Synthesize Schedule ➔
+      </button>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 3: SECURE AUTHENTICATION MODAL (SIGN UP / SIGN IN)           -->
+  <!-- ================================================================== -->
+  <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-md rounded-3xl p-6 border border-tealAccent/40 shadow-2xl text-xs space-y-4">
+
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 id="auth-modal-title" class="text-base font-bold text-white font-mono flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-buttermilk"></span> Sign In to FlowPlan OS
+        </h3>
+        <button id="btn-close-auth" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <p id="auth-modal-subtitle" class="text-slate-300 font-sans text-xs">
+        Enter your credentials to access your encrypted session, multi-horizon schedules, and tier privileges.
+      </p>
+
+      <form id="auth-form" class="space-y-3 font-mono" autocomplete="off">
+        <div id="auth-name-container" class="hidden">
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Full Name</label>
+          <input type="text" id="auth-name-input" placeholder="Your Name" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none focus:border-buttermilk" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Email Address</label>
+          <input type="email" id="auth-email-input" required placeholder="name@domain.com" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none focus:border-buttermilk" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Password</label>
+          <input type="password" id="auth-password-input" required placeholder="••••••••••••" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none focus:border-buttermilk" />
+        </div>
+
+        <div id="auth-legal-box" class="hidden items-start gap-2 pt-1 font-sans">
+          <input type="checkbox" id="auth-legal-check" class="mt-0.5 rounded bg-obsidian border-white/20 cursor-pointer" />
+          <label for="auth-legal-check" class="text-[11px] text-slate-300 leading-tight">
+            I agree to the <button type="button" onclick="openLegalModal('terms')" class="text-buttermilk underline cursor-pointer">Terms &amp; Liability Waiver</button> and <button type="button" onclick="openLegalModal('privacy')" class="text-buttermilk underline cursor-pointer">Privacy Policy</button>.
+          </label>
+        </div>
+
+        <button type="submit" id="btn-submit-auth" class="w-full py-3 rounded-xl bg-buttermilk text-obsidian font-bold text-xs font-mono shadow-lg hover:bg-white transition-all mt-2 cursor-pointer">
+          Sign In ➔
+        </button>
+
+        <div class="text-center pt-2 border-t border-white/10 text-[11px] font-sans">
+          <span id="auth-toggle-msg" class="text-slate-400">Don't have an account yet?</span>
+          <button type="button" id="btn-auth-toggle" class="text-buttermilk font-bold ml-1 hover:underline cursor-pointer">
+            Sign Up
+          </button>
+        </div>
+
+        <button type="button" id="btn-guest-bypass" class="w-full py-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 text-xs font-mono hover:text-white mt-1 cursor-pointer">
+          Continue in Guest Studio
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 4: MASTER ADMIN DASHBOARD ("THE COMMAND CENTER")             -->
+  <!-- ================================================================== -->
+  <div id="admin-dashboard-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-lg p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-6xl rounded-3xl p-6 border border-buttermilk shadow-2xl flex flex-col h-[90vh] overflow-hidden">
+
+      <div class="flex items-center justify-between pb-4 border-b border-white/10">
+        <div>
+          <h2 class="text-lg font-bold text-buttermilk font-mono flex items-center gap-2">
+            👑 The Command Center — Master Administrator Console (God-Mode)
+          </h2>
+          <p class="text-xs text-slate-300 font-sans">
+            Global Telemetry, Dual-Master-Admin Email Dispatch Outbox, Real-Time Subscription Verification &amp; Tier Overrides
+          </p>
+        </div>
+        <button id="btn-close-admin-dash" class="text-white text-2xl font-bold px-2 hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4 font-mono">
+        <div class="p-4 rounded-xl bg-obsidian/90 border border-tealAccent/30">
+          <div class="text-[10px] text-slate-400 uppercase">Registered Users</div>
+          <div id="stat-total-users" class="text-2xl font-bold text-white mt-1">0</div>
+        </div>
+        <div class="p-4 rounded-xl bg-obsidian/90 border border-emerald-500/30">
+          <div class="text-[10px] text-slate-400 uppercase">Active Pro Subscribers</div>
+          <div id="stat-pro-users" class="text-2xl font-bold text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="p-4 rounded-xl bg-obsidian/90 border border-buttermilk/30">
+          <div class="text-[10px] text-slate-400 uppercase">Subscription Requests</div>
+          <div id="stat-total-leads" class="text-2xl font-bold text-buttermilk mt-1">0</div>
+        </div>
+        <div class="p-4 rounded-xl bg-obsidian/90 border border-rose-500/30">
+          <div class="text-[10px] text-slate-400 uppercase">Daily Engagement Score</div>
+          <div id="stat-engagement-score" class="text-2xl font-bold text-rose-300 mt-1">94%</div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-5 pr-1 text-xs font-mono">
+        <div>
+          <h4 class="font-bold text-buttermilk uppercase text-[11px] mb-2 border-b border-white/10 pb-1">
+            Incoming Subscription Purchase Requests (Verify Payment &amp; Activate Pro)
+          </h4>
+          <div id="admin-leads-table" class="space-y-2"></div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-white uppercase text-[11px] mb-2 border-b border-white/10 pb-1">
+            Registered User Directory &amp; Manual Tier Overrides (Free ↔ Pro)
+          </h4>
+          <div id="admin-user-table" class="space-y-2"></div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-emerald-300 uppercase text-[11px] mb-2 border-b border-white/10 pb-1">
+            Automated Dual-Admin Email Notification Outbox (stationplayboy7@gmail.com &amp; muhammadashfaqahmad0710@gmail.com)
+          </h4>
+          <div id="admin-email-outbox" class="space-y-2"></div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2 border-b border-white/10 pb-1 flex-wrap gap-2">
+            <h4 class="font-bold text-rose-300 uppercase text-[11px] flex items-center gap-2">
+              <span>🛡️ Global Security, Queries &amp; Support Tickets</span>
+              <span id="badge-active-queries" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px]">0 Active</span>
+            </h4>
+            <div class="flex items-center gap-1.5 text-[10px]">
+              <button id="btn-toggle-query-view-active" class="px-2 py-0.5 rounded bg-rose-900/60 text-white font-bold cursor-pointer">Active Queries</button>
+              <button id="btn-toggle-query-view-resolved" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white cursor-pointer">Resolved History</button>
+              <button id="btn-clear-resolved-queries" class="px-2 py-0.5 rounded bg-slate-900 border border-white/10 text-slate-400 hover:text-rose-300 cursor-pointer">Clear Archive</button>
+            </div>
+          </div>
+          <div id="admin-complaints-table" class="space-y-2"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 5: FULL-SCREEN FOCUS OVERRIDE MODAL (LEVEL 2 & 3 ALARMS)     -->
+  <!-- ================================================================== -->
+  <div id="fullscreen-alarm-modal" class="fixed inset-0 z-[105] flex items-center justify-center bg-obsidian/95 backdrop-blur-xl p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="max-w-lg w-full glass-navy rounded-3xl p-6 sm:p-8 border-2 border-rose-500 glow-crimson text-center space-y-5 font-mono">
+      <div id="alarm-modal-badge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs uppercase bg-rougeNoir text-buttermilk border border-rose-400">
+        🚨 LEVEL 3 CRITICAL // FOCUS OVERRIDE
+      </div>
+
+      <div class="space-y-1">
+        <div id="alarm-modal-time" class="text-xs text-skyBlue font-bold">09:00 AM — 10:30 AM</div>
+        <h2 id="alarm-modal-title" class="text-2xl sm:text-3xl font-extrabold text-white font-sans">Scheduled Execution Block</h2>
+        <p class="text-xs text-slate-300 font-sans">Real-time Web Audio API alarm active. Immediate execution response required.</p>
+      </div>
+
+      <div class="space-y-2.5 pt-2">
+        <button id="btn-alarm-engage" class="w-full py-3.5 rounded-xl bg-buttermilk text-obsidian font-bold text-xs uppercase hover:bg-white transition cursor-pointer">
+          🔥 Engage Deep Focus &amp; Silence Alarm
+        </button>
+        <div class="grid grid-cols-3 gap-2">
+          <button id="btn-alarm-complete" class="py-2.5 rounded-xl bg-blueCoral text-white border border-tealAccent text-xs cursor-pointer">
+            ✓ Done
+          </button>
+          <button id="btn-alarm-snooze" class="py-2.5 rounded-xl bg-slate-800 text-skyBlue border border-skyBlue/30 text-xs hover:bg-slate-700 cursor-pointer">
+            ⏳ Snooze 5m
+          </button>
+          <button id="btn-alarm-defer" class="py-2.5 rounded-xl bg-cognac text-buttermilk border border-amber-400 text-xs cursor-pointer">
+            ↪ Defer (-8pt)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 6: SUPPORT & FEEDBACK                                        -->
+  <!-- ================================================================== -->
+  <div id="complaint-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-md rounded-3xl p-6 border border-tealAccent/40 shadow-2xl text-xs space-y-4 font-mono">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📬</span> Support &amp; Feedback
+        </h3>
+        <button id="btn-close-complaint" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <form id="complaint-form" class="space-y-3">
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Your Email</label>
+          <input type="email" id="complaint-email" required placeholder="name@domain.com" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Category</label>
+          <select id="complaint-category" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none">
+            <option>Schedule Studio / Day Drill-Down</option>
+            <option>RAG Copilot Query</option>
+            <option>PDF Export</option>
+            <option>Billing / Account Upgrade</option>
+            <option>Feature Suggestion</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Message</label>
+          <textarea id="complaint-message" required rows="3" placeholder="Describe your feedback..." class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-buttermilk text-obsidian font-bold font-mono text-xs hover:bg-white transition-all cursor-pointer">
+          Submit Ticket ➔
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 7: DUAL VECTOR PDF SELECTION                                 -->
+  <!-- ================================================================== -->
+  <div id="pdf-choice-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-md rounded-3xl p-6 border border-tealAccent/40 shadow-2xl text-center space-y-4 font-mono">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold text-white">Select PDF Format</h3>
+        <button id="btn-close-pdf-modal" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <button id="btn-pdf-horizontal" class="p-4 rounded-2xl bg-obsidian border border-tealAccent/40 hover:border-buttermilk flex flex-col items-center gap-1.5 transition-all cursor-pointer">
+          <span class="text-2xl">📊</span>
+          <span class="font-bold text-xs text-buttermilk">Horizontal Grid</span>
+          <span class="text-[9px] text-slate-300 font-sans">Single-page timetable</span>
+        </button>
+        <button id="btn-pdf-vertical" class="p-4 rounded-2xl bg-obsidian border border-tealAccent/40 hover:border-buttermilk flex flex-col items-center gap-1.5 transition-all cursor-pointer">
+          <span class="text-2xl">📑</span>
+          <span class="font-bold text-xs text-white">7-Page Dossier</span>
+          <span class="text-[9px] text-slate-300 font-sans">Full week by day</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 8: SUBSCRIPTION PURCHASE & DUAL MASTER ADMIN DISPATCH        -->
+  <!-- ================================================================== -->
+  <div id="payment-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-md rounded-3xl p-6 border border-tealAccent/40 shadow-2xl text-xs space-y-4 font-mono">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div>
+          <h3 id="payment-plan-title" class="text-sm font-bold text-white">Selected Plan</h3>
+          <p id="payment-plan-amount" class="text-xs text-buttermilk font-bold">Price</p>
+        </div>
+        <button id="btn-close-payment" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <form id="formspree-payment-form" class="space-y-3">
+        <input type="hidden" name="plan" id="form-plan-input" />
+        <input type="hidden" name="amount" id="form-amount-input" />
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Full Name</label>
+          <input type="text" id="pay-name" name="name" required placeholder="Alex Miller" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Email</label>
+          <input type="email" id="pay-email" name="email" required placeholder="alex@domain.com" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] text-slate-400 uppercase mb-1">Contact Phone / Payment Ref</label>
+          <input type="text" id="pay-phone" name="phone" required placeholder="+1 555-0100 / Ref ID" class="w-full bg-obsidian border border-white/20 rounded-xl px-3 py-2 text-white outline-none" />
+        </div>
+
+        <button type="submit" id="btn-submit-payment" class="w-full py-3 rounded-xl bg-buttermilk text-obsidian font-bold font-mono text-xs hover:bg-white transition-all shadow-lg mt-2 cursor-pointer">
+          Submit Purchase &amp; Notify Master Admins ➔
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 9: LEGAL COMPLIANCE & SECURITY ARCHITECTURE                  -->
+  <!-- ================================================================== -->
+  <div id="legal-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-2xl rounded-3xl p-6 border border-tealAccent/40 shadow-2xl text-xs space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 id="legal-modal-title" class="text-base font-bold text-white font-mono flex items-center gap-2">Security &amp; Legal Compliance</h3>
+        <button id="btn-close-legal" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+      <div id="legal-modal-body" class="text-slate-300 font-sans space-y-3 max-h-96 overflow-y-auto pr-2 leading-relaxed"></div>
+    </div>
+  </div>
+
+
+  
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 10: STANDALONE FULL-SCREEN AI CONSULTATION & RAG HUB         -->
+  <!-- (Modeled directly on https://ashfaq-portfolio-chi.vercel.app/chat) -->
+  <!-- ================================================================== -->
+  <div id="ai-standalone-modal" class="fixed inset-0 z-[75] flex items-center justify-center bg-obsidian/98 p-2 sm:p-5 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="w-full max-w-7xl h-[94vh] flex flex-col lg:flex-row gap-4 overflow-hidden">
+
+      <!-- Left Sidebar: Live FlowPlan OS Telemetry & Official Plan Rates -->
+      <aside class="w-full lg:w-80 shrink-0 flex flex-col gap-3 overflow-y-auto pr-1">
+        <!-- Card 1: AI Identity & Live Workspace State -->
+        <div class="glass-navy rounded-2xl p-4 border border-tealAccent/35 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-buttermilk text-obsidian font-mono font-extrabold text-base grid place-items-center relative shrink-0 shadow-lg">
+              FP
+              <span class="w-3 h-3 rounded-full bg-emerald-400 border-2 border-obsidian absolute -right-1 -bottom-1"></span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white font-mono">FlowPlan AI Copilot</h3>
+              <p class="text-[11px] text-emerald-400 font-mono">Gemini 3.5 RAG Engine • Online</p>
+              <p class="text-[10px] text-slate-400">Architected by Muhammad Ashfaq Ahmad</p>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Deeply integrated with your <strong>Multi-Horizon Calendar (Yearly/Monthly/Weekly/Daily)</strong>, <strong>Modular Workspace</strong>, <strong>Visual Decay Metrics</strong>, <strong>Uploaded Syllabi</strong>, and <strong>EOD Discipline Audit</strong>.
+          </p>
+
+          <div class="p-3 rounded-xl bg-obsidian/90 border border-white/10 space-y-1.5 font-mono text-[11px]">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Active Horizon:</span>
+              <span id="standalone-ai-active-day" class="text-buttermilk font-bold">Week 1 • Mon</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Scheduled Blocks:</span>
+              <span id="standalone-ai-task-count" class="text-skyBlue font-bold">0 tasks</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Discipline Index:</span>
+              <span id="standalone-ai-discipline" class="text-emerald-400 font-bold">94% (Rank S)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Indexed RAG Docs:</span>
+              <span id="standalone-ai-doc-count" class="text-amber-300 font-bold">0 docs</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">AI Consult Credits:</span>
+              <span id="standalone-ai-credits-badge" class="text-buttermilk font-bold">5 / 5</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
+            <button id="btn-ai-hub-open-studio" class="py-2 px-3 rounded-xl bg-buttermilk text-obsidian font-bold hover:bg-white cursor-pointer">
+              📅 Open Studio
+            </button>
+            <button id="btn-ai-hub-upload-doc" class="py-2 px-3 rounded-xl bg-slate-900 border border-tealAccent/40 text-skyBlue hover:text-white cursor-pointer">
+              📎 Index Doc
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Official FlowPlan OS Tiers & Instant In-Chat Upgrade -->
+        <div class="glass-card rounded-2xl p-4 border border-buttermilk/30 space-y-2.5 font-mono text-xs flex-1">
+          <h4 class="text-xs font-bold text-buttermilk uppercase tracking-wider">💎 Official FlowPlan OS Tiers</h4>
+          <div class="space-y-2 text-[11px] leading-snug">
+            <div class="p-2 rounded-xl bg-obsidian/80 border border-white/10">
+              <div class="flex justify-between font-bold text-white"><span>⚡ 24-Hour Day Pass</span><span class="text-buttermilk">$5</span></div>
+              <div class="text-[10px] text-slate-400">Full Weekly/Monthly Studio + PDF exports for 24h</div>
+            </div>
+            <div class="p-2 rounded-xl bg-blueCoral/40 border border-tealAccent/50">
+              <div class="flex justify-between font-bold text-buttermilk"><span>🚀 Weekly Pro (Popular)</span><span>$14/mo</span></div>
+              <div class="text-[10px] text-slate-300">Unlimited Gemini 3.5 RAG, 7-Day Matrix, L2/L3 Alarms</div>
+            </div>
+            <div class="p-2 rounded-xl bg-obsidian/80 border border-white/10">
+              <div class="flex justify-between font-bold text-white"><span>👑 Monthly Master Pass</span><span class="text-emerald-400">$35/mo</span></div>
+              <div class="text-[10px] text-slate-400">Full 31-Day Monthly + 365-Day Yearly + Workspace</div>
+            </div>
+            <div class="p-2 rounded-xl bg-obsidian/80 border border-white/10">
+              <div class="flex justify-between font-bold text-white"><span>🏛️ Annual Founder</span><span class="text-skyBlue">$290/yr</span></div>
+              <div class="text-[10px] text-slate-400">Complete Yearly OS + Direct Founder Priority Support</div>
+            </div>
+          </div>
+          <button onclick="openPaymentModal('Weekly Pro ($14/month)', '$14/month')" class="w-full py-2.5 rounded-xl bg-blueCoral border border-tealAccent text-buttermilk font-bold text-xs hover:bg-tealAccent/30 cursor-pointer">
+            Upgrade via Modal Form ➔
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right Main Chat Studio Canvas -->
+      <div class="flex-1 glass-navy rounded-3xl border border-indigo-400/40 flex flex-col justify-between overflow-hidden shadow-2xl">
+        <!-- Header -->
+        <header class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-obsidian/70">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-buttermilk text-obsidian font-mono font-extrabold text-sm grid place-items-center relative">
+              FP
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-obsidian absolute -right-0.5 -bottom-0.5"></span>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-white font-mono flex items-center gap-2">
+                FlowPlan AI <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px]">THINKING + RAG ACTIVE</span>
+              </h2>
+              <p class="text-[11px] font-mono text-skyBlue">Autonomous Circadian Strategist, Schedule Reorganizer &amp; Direct Plan Consultant</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 font-mono">
+            <button id="btn-close-standalone-ai" class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/20 text-white hover:border-buttermilk text-xs cursor-pointer">
+              ✕ Close Hub
+            </button>
+          </div>
+        </header>
+
+        <!-- Synchronized Message Stream -->
+        <div id="standalone-chat-messages" class="fp-chat-stream p-5"></div>
+
+        <!-- Quick Suggestion Chips -->
+        <div id="standalone-chat-suggestions" class="fp-chat-suggestions px-5 py-2.5">
+          <button class="fp-chat-chip" data-q="Analyze my current schedule and free circadian windows">🔍 Analyze My Schedule</button>
+          <button class="fp-chat-chip" data-q="Schedule 8:00 AM to 10:30 AM Deep Work Architecture L3 and 4:00 PM to 5:30 PM Problem Solving L2 on Monday to Friday">📅 Build 5-Day Elite Routine</button>
+          <button class="fp-chat-chip" data-q="Reorganize my active day by priority and circadian energy curve">⚡ Reorganize Active Day</button>
+          <button class="fp-chat-chip" data-q="Add workspace todo: Complete System Design Proof and add metric: Deep Work Hours 30">🗂 Add Workspace Block &amp; Metric</button>
+          <button class="fp-chat-chip" data-q="What is my current Discipline Index score and EOD Audit breakdown?">📊 Check Discipline Index</button>
+          <button class="fp-chat-chip" data-q="What are your FlowPlan OS pricing plans and how can I upgrade?">💎 Compare Plans &amp; Prices</button>
+          <button class="fp-chat-chip" data-q="I want to book and upgrade to Weekly Pro right now">🚀 Upgrade In-Chat</button>
+        </div>
+
+        <!-- Input Bar -->
+        <form id="standalone-ai-form" class="p-3.5 bg-obsidian/90 border-t border-white/10 flex items-center gap-2">
+          <button type="button" id="btn-standalone-ai-attach" title="Upload & Index Syllabus PDF / Timetable Image" class="p-2.5 rounded-xl bg-slate-900 border border-white/20 text-slate-300 hover:text-buttermilk cursor-pointer">📎</button>
+          <button type="button" id="btn-standalone-ai-voice" title="Voice Dictation" class="p-2.5 rounded-xl bg-slate-900 border border-white/20 text-slate-300 hover:text-rose-400 cursor-pointer">🎙️</button>
+          <input type="text" id="standalone-ai-input" placeholder="Ask anything, build a full week schedule, reorganize any day, query uploaded syllabi, or upgrade in chat..." autocomplete="off" class="flex-1 bg-slate-900 border border-white/20 rounded-xl px-4 py-2.5 text-white text-xs sm:text-sm outline-none font-mono focus:border-buttermilk" />
+          <button type="submit" id="btn-standalone-ai-send" class="px-5 py-2.5 rounded-xl bg-buttermilk text-obsidian font-bold text-xs sm:text-sm font-mono hover:bg-white cursor-pointer shadow-lg">
+            Send ➔
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 11: TASK STRATEGIC NOTES & EXECUTION CHECKLIST               -->
+  <!-- ================================================================== -->
+  <div id="task-notes-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-2xl rounded-3xl p-5 sm:p-6 border border-tealAccent/50 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-xs font-mono space-y-4">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-2">
+            <span id="task-notes-importance-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blueCoral text-skyBlue border border-tealAccent">Level 1 Routine</span>
+            <span id="task-notes-energy-badge" class="px-2 py-0.5 rounded text-[10px] text-buttermilk bg-slate-800">Peak Energy</span>
+          </div>
+          <h3 id="task-notes-title" class="text-base sm:text-lg font-bold text-white font-sans">Task Execution Brief</h3>
+          <p id="task-notes-timing" class="text-[11px] text-slate-400">08:00 AM — 09:30 AM</p>
+        </div>
+        <button id="btn-close-task-notes" class="text-white text-2xl font-bold px-2 hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <!-- Scrollable Content -->
+      <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+        <!-- Strategic Notes Textarea -->
+        <div>
+          <label class="block text-[11px] font-bold text-buttermilk uppercase mb-1 flex items-center justify-between">
+            <span>📝 Strategic Notes &amp; Minutes</span>
+            <span class="text-[10px] text-slate-400 font-normal">Auto-indexed in FlowAI RAG</span>
+          </label>
+          <textarea id="task-notes-body" rows="4" placeholder="Enter deep notes, reference URLs, execution requirements, or meeting summaries..." class="w-full bg-obsidian/90 border border-white/20 rounded-xl p-3 text-white font-sans text-xs focus:border-tealAccent outline-none resize-none leading-relaxed"></textarea>
+        </div>
+
+        <!-- Subtasks / Checklist Manager -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-[11px] font-bold text-white uppercase">
+              Execution Subtasks &amp; Checklist
+            </label>
+            <span id="task-subtasks-progress" class="text-[10px] text-emerald-400 font-bold">0 / 0 completed (0%)</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-white/10">
+            <div id="task-subtasks-progress-bar" class="bg-tealAccent h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+
+          <!-- Add Subtask Input Form -->
+          <div class="flex gap-2">
+            <input type="text" id="task-new-subtask-input" placeholder="Type subtask and press Enter (e.g. 'Draft initial outline')..." class="flex-1 bg-obsidian/90 border border-white/20 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-tealAccent" />
+            <button id="btn-add-subtask" class="px-3.5 py-2 rounded-xl bg-tealAccent hover:bg-white hover:text-obsidian font-bold text-white transition-all cursor-pointer">
+              + Add
+            </button>
+          </div>
+
+          <!-- Subtasks List -->
+          <div id="task-subtasks-list" class="space-y-1.5 max-h-48 overflow-y-auto pt-1">
+            <!-- Dynamically populated checklist items -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="flex items-center justify-between pt-3 border-t border-white/10 shrink-0">
+        <button id="btn-delete-task-from-notes" class="px-3 py-2 rounded-xl bg-rougeNoir/80 hover:bg-rougeNoir text-rose-300 text-xs border border-rose-500/40 cursor-pointer">
+          🗑 Delete Task
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="btn-save-task-notes" class="px-5 py-2 rounded-xl bg-buttermilk text-obsidian font-bold text-xs hover:bg-white transition-all cursor-pointer">
+            ✓ Save Notes &amp; Checklist
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 12: PWA / ADD TO DEVICE HOME SCREEN GUIDE                     -->
+  <!-- ================================================================== -->
+  <div id="pwa-install-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-md rounded-3xl p-6 border border-tealAccent/50 shadow-2xl text-xs space-y-4 font-mono">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📲</span> Add FlowPlan to Home Screen
+        </h3>
+        <button id="btn-close-pwa-modal" class="text-white text-xl font-bold hover:text-buttermilk cursor-pointer">&times;</button>
+      </div>
+
+      <div class="space-y-3 font-sans text-slate-300 text-xs leading-relaxed">
+        <p>Install FlowPlan OS on your phone, tablet, or desktop for zero-friction access, offline circadian time-blocking, and real-time focus alarms.</p>
+
+        <div class="p-3 rounded-2xl bg-obsidian/90 border border-tealAccent/30 space-y-2 font-mono">
+          <div class="font-bold text-buttermilk text-[11px] uppercase">Chrome / Edge / Android:</div>
+          <p class="text-[11px] text-whiteSand font-sans">Click the button below to prompt direct instant installation on your device home screen.</p>
+          <button id="btn-pwa-trigger-direct" class="w-full py-2.5 rounded-xl bg-tealAccent hover:bg-white hover:text-obsidian text-white font-bold text-xs transition-all cursor-pointer">
+            📲 Install Directly Now
+          </button>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-obsidian/90 border border-white/10 space-y-1.5 font-mono">
+          <div class="font-bold text-skyBlue text-[11px] uppercase">Apple iOS (iPhone / iPad Safari):</div>
+          <ol class="list-decimal list-inside text-[11px] text-slate-300 font-sans space-y-1">
+            <li>Tap the <strong class="text-white">Share button</strong> (square with arrow up ⎋) in Safari.</li>
+            <li>Scroll down and tap <strong class="text-buttermilk">"Add to Home Screen"</strong> (+).</li>
+            <li>Tap <strong class="text-white">"Add"</strong> in the top-right corner.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="pt-2 text-center font-mono text-[10px] text-slate-400">
+        ✓ Offline caching enabled • Web Audio sirens • Fast launch
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- MODAL 13: SUBSCRIPTION TIER PAYWALL & STRICT USAGE LIMITS           -->
+  <!-- ================================================================== -->
+  <div id="paywall-limit-modal" class="fixed inset-0 z-[106] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="glass-navy w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-amber-400/50 glow-amber shadow-2xl text-xs space-y-4 font-mono text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] uppercase bg-rougeNoir text-buttermilk border border-amber-400">
+        <span>🔒</span> STRICT SUBSCRIPTION TIER RESTRICTION
+      </div>
+
+      <div class="space-y-1.5 text-left sm:text-center">
+        <h3 id="paywall-modal-title" class="text-lg sm:text-xl font-bold text-white font-sans">Feature Restricted on Free Tier</h3>
+        <p id="paywall-modal-desc" class="text-xs text-slate-300 font-sans leading-relaxed">
+          Your current plan has reached its strict operating limit. Upgrade your operative tier to bypass friction.
+        </p>
+      </div>
+
+      <!-- Quick Upgrade Plan Tiers -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left pt-2 font-mono">
+        <div class="p-3.5 rounded-2xl bg-obsidian border border-tealAccent/50 flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold text-white">
+              <span>Weekly Pro</span>
+              <span class="text-buttermilk">$14<small class="text-[9px] text-slate-400">/mo</small></span>
+            </div>
+            <ul class="text-[10px] text-slate-300 space-y-1 mt-2">
+              <li>✓ 7-Day Weekly Matrix</li>
+              <li>✓ 250 AI Consultation Credits</li>
+              <li>✓ Notion Modular Workspace</li>
+              <li>✓ L2 &amp; L3 Focus Alarms</li>
+            </ul>
+          </div>
+          <button onclick="openPaymentModal('Weekly Pro Pass', '$14/month')" class="w-full py-2 rounded-xl bg-tealAccent hover:bg-white hover:text-obsidian text-white font-bold text-[10px] cursor-pointer">
+            Select Weekly Pro ➔
+          </button>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-obsidian border border-buttermilk/60 flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold text-buttermilk">
+              <span>Monthly Master</span>
+              <span class="text-white">$35<small class="text-[9px] text-slate-400">/mo</small></span>
+            </div>
+            <ul class="text-[10px] text-slate-300 space-y-1 mt-2">
+              <li>✓ Full 31-Day &amp; 365-Day Planners</li>
+              <li>✓ Unlimited AI Credits (∞)</li>
+              <li>✓ Unlimited Vector PDF Dossiers</li>
+              <li>✓ Full Compounding &amp; EOD Audit</li>
+            </ul>
+          </div>
+          <button onclick="openPaymentModal('Monthly Master Pass', '$35/month')" class="w-full py-2 rounded-xl bg-cognac hover:bg-buttermilk hover:text-obsidian text-buttermilk font-bold text-[10px] cursor-pointer">
+            Select Monthly Master ➔
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2 flex items-center justify-center">
+        <button id="btn-close-paywall-modal" class="text-slate-400 hover:text-white text-xs underline cursor-pointer">
+          Dismiss &amp; Return to Daily Sandbox
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- FLOATING BOTTOM-RIGHT FLOWPLAN AI WIDGET (Portfolio Style)         -->
+  <!-- ================================================================== -->
+  <div id="flowplan-floating-chat" class="fp-chat-floating-wrap">
+    <button id="fp-floating-chat-btn" class="fp-chat-trigger-btn" aria-label="Open FlowPlan AI Chat">
+      <span class="fp-chat-trigger-avatar">
+        FP
+        <span class="fp-chat-live-pulse"></span>
+      </span>
+      <span class="fp-chat-trigger-label">
+        <strong>FlowPlan AI</strong>
+        <small>Gemini 3.5 RAG Copilot 🟢</small>
+      </span>
+    </button>
+
+    <div id="fp-floating-chat-drawer" class="fp-chat-drawer" aria-hidden="true">
+      <header class="px-4 py-3 bg-obsidian border-b border-white/15 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-buttermilk text-obsidian font-mono font-extrabold text-xs grid place-items-center relative">
+            FP
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-obsidian absolute -right-0.5 -bottom-0.5"></span>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+              FlowPlan AI <span class="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[9px]">RAG BOT</span>
+            </h4>
+            <p class="text-[10px] font-mono text-skyBlue flex items-center gap-2">
+              <span>Online 🟢</span>
+              <span id="floating-ai-credits-badge" class="px-1.5 py-0.2 rounded bg-indigo-900/60 border border-indigo-400/30 text-[9px] text-buttermilk">⚡ 5/5 Credits</span>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="btn-floating-expand-full" title="Open Fullscreen AI Hub" class="px-2 py-1 rounded-lg bg-slate-900 border border-white/15 text-buttermilk text-xs cursor-pointer">⛶</button>
+          <button id="btn-floating-close" title="Close" class="px-2 py-1 rounded-lg bg-slate-900 border border-white/15 text-slate-300 hover:text-white text-xs cursor-pointer">✕</button>
+        </div>
+      </header>
+
+      <div id="floating-chat-messages" class="fp-chat-stream"></div>
+
+      <div id="floating-chat-suggestions" class="fp-chat-suggestions">
+        <button class="fp-chat-chip" data-q="Analyze my current schedule and free circadian windows">🔍 Analyze Schedule</button>
+        <button class="fp-chat-chip" data-q="Plan deep work sprints from 8am to 11am Monday to Friday">⚡ Plan Deep Work</button>
+        <button class="fp-chat-chip" data-q="Reorganize my active day by priority">🔄 Reorganize Day</button>
+        <button class="fp-chat-chip" data-q="What are your FlowPlan OS pricing plans?">💎 Pricing Tiers</button>
+        <button class="fp-chat-chip" data-q="I want to upgrade and book a FlowPlan Pro plan">🚀 Upgrade Now</button>
+      </div>
+
+      <form id="floating-ai-form" class="p-2.5 bg-obsidian border-t border-white/15 flex items-center gap-1.5">
+        <input type="text" id="floating-ai-input" placeholder="Ask FlowPlan AI or command schedule..." autocomplete="off" class="flex-1 bg-slate-900 border border-white/20 rounded-xl px-3 py-2 text-white text-xs outline-none font-mono focus:border-buttermilk" />
+        <button type="submit" id="btn-floating-ai-send" class="px-3.5 py-2 rounded-xl bg-buttermilk text-obsidian font-bold text-xs font-mono hover:bg-white cursor-pointer">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="background3d.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
